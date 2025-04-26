@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seekle</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s, color 0.3s;
+            margin: 5px;
+            padding-bottom: 20px;
+            box-sizing: border-box;
+        }
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+        /* Dark theme styles */
+        body.dark-theme {
+            background-color: #333;
+            color: #fff;
+        }
+        /* Main game container */
+        #game-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px 10px 30px 10px; /* Added bottom padding */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            transition: background-color 0.3s, color 0.3s;
+            text-align: center;
+            max-width: 640px;
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 20px;
+        }
+        .dark-theme #game-container {
+            background-color: #444;
+            color: #fff;
+        }
+        /* Game title */
+        h1 {
+            margin: 10px 0;
+        }
+        /* Grid of icon buttons */
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Individual icon buttons */
+        .icon-button {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            height: auto;
+            font-size: clamp(18px, 4.5vmin, 30px);
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            /* Default transition applied here */
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 0;
+        }
+        .dark-theme .icon-button {
+            background-color: #555;
+            color: #fff;
+        }
+        .icon-button:hover {
+            background-color: #d0d0d0;
+        }
+        .dark-theme .icon-button:hover {
+            background-color: #666;
+        }
+        /* Highlighted icon button */
+        .icon-button.highlight {
+            background-color: #e5d335;
+            color: black;
+        }
+        .dark-theme .icon-button.highlight {
+            background-color: #ffd600;
+            color: black;
+        }
+        /* Diversion icon highlight - USER CHANGED TO DARKRED */
+        .icon-button.diversion-highlight {
+            background-color: darkred;
+            color: white;
+        }
+        .dark-theme .icon-button.diversion-highlight {
+            background-color: darkred; /* Same color for both themes as per user's file */
+            color: white;
+        }
+        /* Control buttons container */
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        /* Control buttons */
+        #action-button, #replay-button, #mute-button, #theme-toggle, #share-button {
+            font-size: clamp(14px, 2.5vmin, 16px);
+            padding: 10px 15px;
+            background-color: #3d8b40;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, opacity 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #action-button:hover, #replay-button:hover, #mute-button:hover, #theme-toggle:hover, #share-button:hover {
+            background-color: #45a049;
+        }
+        #action-button:disabled, #share-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #5e8c61;
+        }
+        .dark-theme #action-button:disabled, .dark-theme #share-button:disabled {
+             background-color: #555;
+        }
+
+        /* Score and level display */
+        #score-level {
+            font-size: 18px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* HIDE SCORE SPAN */
+        #score {
+             display: none;
+        }
+        /* Message display */
+        #message {
+            font-size: 15px; /* User changed size */
+            font-weight: bold;
+            margin: 10px 0;
+            color: #3d8b40;
+            min-height: 30px;
+        }
+        .dark-theme #message {
+            color: #81c784;
+        }
+
+        /* Instructions Area */
+        #instructions-toggle {
+            font-size: clamp(14px, 2.5vmin, 16px);
+            padding: 10px 15px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 30px;
+        }
+        #instructions-toggle:hover {
+            background-color: #666;
+        }
+         .dark-theme #instructions-toggle {
+             background-color: #777;
+         }
+         .dark-theme #instructions-toggle:hover {
+             background-color: #888;
+         }
+
+        #instructions-content {
+            display: none;
+            max-width: 640px;
+            width: 95%;
+            margin: 15px auto 0 auto;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .dark-theme #instructions-content {
+            background-color: #3a3a3a;
+            border-color: #555;
+            color: #eee;
+        }
+        #instructions-content.visible {
+            display: block;
+        }
+        #instructions-content h2 {
+             margin-top: 0;
+             text-align: center;
+        }
+         #instructions-content ul {
+             padding-left: 20px;
+         }
+
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Seekle</h1>
+        <div id="score-level">
+            <span id="score">Score: 0</span>
+            <span id="level">Level: 1.1</span>
+        </div>
+        <div id="message">Click Start!</div>
+        <div id="grid"></div>
+        <div id="controls">
+            <button id="action-button">Start</button>
+            <button id="replay-button" style="display: none;">Replay</button>
+            <button id="mute-button"><i class="material-icons">volume_up</i></button>
+            <button id="theme-toggle"><i class="material-icons">brightness_4</i></button>
+            <button id="share-button" disabled><i class="material-icons">share</i></button>
+        </div>
+
+
+    <button id="instructions-toggle">Show Instructions</button>
+    <div id="instructions-content">
+        <h2>How to Play Seekle</h2>
+        <ul>
+            <li>Click "Start" to begin.</li>
+            <li>Watch the sequence of icons that light up on the grid.</li>
+            <li>Click the icons in the exact same order they were shown.</li>
+            <li>The game automatically proceeds through the 3 rounds of each sub-level.</li>
+            <li>After completing the 3rd round of a sub-level, click the "Next" button to proceed to the next sub-level/level.</li>
+            <li>The sequence gets longer and faster as you advance through levels and sub-levels.</li>
+            <li>There are 4 main levels (3, 4, 5, then 6 icons).</li>
+            <li>Each level has 10 sub-levels (e.g., 1.1 to 1.10).</li>
+            <li>On the <strong>3rd round</strong> of each sub-level, extra <strong>dark red</strong> icons will show within the sequence. <strong>IGNORE these dark red icons</strong> - they are just a sneaky distraction to make it harder, and not part of the sequence you need to repeat.</li>
+            <li>If you make a mistake, the game is over. Click "Replay" to try again!</li>
+            <li>Good luck!</li>
+        </ul>
+    </div>
+
+
+        </div> <script>
+        // Array of Material Icons to be used in the game
+        const icons = [
+            'home', 'favorite', 'star', 'settings', 'delete',
+            'add_task', 'downloading', 'search', 'tablet', 'swipe_up',
+            'mail', 'person', 'lock', 'visibility', 'shopping_cart',
+            'build', 'skateboarding', 'thumb_down', 'alarm', 'event',
+            'camera', 'music_note', 'phone', 'message', 'notifications',
+            'cloud', 'transcribe', 'flag', 'sports_tennis', 'dashboard'
+        ];
+
+        // DOM element references
+        const grid = document.getElementById('grid');
+        const actionButton = document.getElementById('action-button');
+        const replayButton = document.getElementById('replay-button');
+        const muteButton = document.getElementById('mute-button');
+        const themeToggle = document.getElementById('theme-toggle');
+        const shareButton = document.getElementById('share-button');
+        const levelElement = document.getElementById('level');
+        const messageElement = document.getElementById('message');
+        const instructionsToggle = document.getElementById('instructions-toggle');
+        const instructionsContent = document.getElementById('instructions-content');
+
+        // Game state variables
+        let sequence = [];
+        let playerSequence = [];
+        let level = 1;
+        let sublevel = 1;
+        let highlightTime = 1000;
+        let sequenceLength = 3;
+        let roundsPerLevel = 3;
+        let currentRound = 0;
+        let isMuted = false;
+        let isDarkTheme = false;
+        let isGameActive = false;
+        let readyForNext = false;
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function createTone(frequency, duration) {
+            if (isMuted) return;
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.6, audioContext.currentTime + 0.01);
+                oscillator.start(audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (error) { console.error("Error playing sound:", error); }
+        }
+
+        function playSequenceSound(index) {
+             const baseFrequency = 300;
+             const frequency = baseFrequency + (index * 30);
+             createTone(frequency, 0.2);
+        }
+
+        function playWrongSound() { createTone(150, 0.4); }
+
+        function createGrid() {
+            grid.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const button = document.createElement('button');
+                button.className = 'icon-button';
+                button.innerHTML = `<i class="material-icons">${icons[i]}</i>`;
+                button.dataset.index = i;
+                button.addEventListener('click', () => handlePlayerClick(i));
+                grid.appendChild(button);
+            }
+        }
+
+        function generateSequence() {
+            sequence = [];
+            const availableIndices = Array.from({length: 30}, (_, i) => i);
+            for (let i = 0; i < sequenceLength; i++) {
+                 if (availableIndices.length === 0) break;
+                const randomIndex = Math.floor(Math.random() * availableIndices.length);
+                sequence.push(availableIndices[randomIndex]);
+                availableIndices.splice(randomIndex, 1);
+            }
+        }
+
+        function updateLevelSettings() {
+            const maxMainLevel = 4;
+            const baseHighlightTime = 1000;
+            const maxHighlightTimeReduction = 600;
+            const minHighlightTime = 300;
+            sequenceLength = Math.min(level + 2, 6);
+            let timeReductionPerSublevel = maxHighlightTimeReduction / 9;
+            let calculatedTime = baseHighlightTime - (timeReductionPerSublevel * (sublevel - 1));
+            highlightTime = Math.max(calculatedTime, minHighlightTime);
+        }
+
+        // --- UPDATED showSequence Function ---
+        function showSequence() {
+            messageElement.textContent = "Watch the sequence...";
+            grid.style.pointerEvents = 'none';
+            actionButton.disabled = true;
+
+            const isDiversionRound = (currentRound === roundsPerLevel - 1);
+            let displaySteps = [];
+            let numDiversions = 0;
+
+            sequence.forEach(iconIndex => {
+                displaySteps.push({ iconIndex: iconIndex, duration: highlightTime * 0.8, isDiversion: false });
+            });
+
+            numDiversions = Math.max(0, sequenceLength - 2);
+            if (isDiversionRound && numDiversions > 0) {
+                let availableDiversionIndices = Array.from({length: 30}, (_, i) => i).filter(idx => !sequence.includes(idx));
+                availableDiversionIndices.sort(() => 0.5 - Math.random());
+                let validInsertionPoints = Array.from({length: sequence.length - 1}, (_, i) => i + 1);
+                validInsertionPoints.sort(() => 0.5 - Math.random());
+                let insertedCount = 0;
+                for (let i = 0; i < numDiversions && i < availableDiversionIndices.length && i < validInsertionPoints.length; i++) {
+                    let diversionIconIndex = availableDiversionIndices[i];
+                    let diversionPosition = validInsertionPoints[i] + insertedCount;
+                    displaySteps.splice(diversionPosition, 0, { iconIndex: diversionIconIndex, duration: highlightTime * 0.6, isDiversion: true });
+                    insertedCount++;
+                }
+            }
+
+            let cumulativeDelay = 0;
+            const delayBetweenFlashes = highlightTime;
+
+            displaySteps.forEach((step) => { // Removed index 'i' as it's not needed
+                // Use block scope for button variable
+                let currentButton = grid.children[step.iconIndex];
+                // Ensure button exists before proceeding
+                if (!currentButton) {
+                    console.error(`Button at index ${step.iconIndex} not found`);
+                    return; // Skip this step if button doesn't exist
+                }
+
+                // Use a function scope for timeout logic to capture current button correctly
+                const highlightStep = (button, stepData, delay) => {
+                    setTimeout(() => {
+                        // Check if button still exists and is part of the grid
+                        if (!grid.contains(button)) return;
+
+                        const highlightClass = stepData.isDiversion ? 'diversion-highlight' : 'highlight';
+                        const originalTransition = button.style.transition;
+                        button.style.transition = 'none'; // Temporarily disable transition
+
+                        button.classList.add(highlightClass);
+                        if (!stepData.isDiversion) { playSequenceSound(stepData.iconIndex); }
+
+                        setTimeout(() => {
+                             // Check again if button still exists
+                            if (grid.contains(button)) {
+                                button.classList.remove(highlightClass);
+                                button.style.transition = originalTransition; // Restore transition
+                            }
+                        }, stepData.duration);
+
+                    }, delay);
+                };
+
+                highlightStep(currentButton, step, cumulativeDelay); // Pass button and step data
+                cumulativeDelay += delayBetweenFlashes; // Increment delay for the next flash
+            });
+
+
+            setTimeout(() => {
+                if (!isGameActive) return;
+                // User changed diversion color to darkred in CSS and text here
+                const turnMessage = isDiversionRound ? "Your turn! (ignore the dark red icons)" : "Your turn!";
+                messageElement.textContent = turnMessage;
+                grid.style.pointerEvents = 'auto';
+                actionButton.disabled = true;
+            }, cumulativeDelay);
+        }
+        // --- END UPDATED showSequence ---
+
+        function handlePlayerClick(index) {
+            if (!isGameActive || grid.style.pointerEvents === 'none' || playerSequence.length >= sequence.length) { return; }
+
+            const clickedButton = grid.children[index];
+            if (!clickedButton) return;
+            const originalTransition = clickedButton.style.transition;
+            clickedButton.style.transition = 'none';
+
+            clickedButton.classList.add('highlight');
+            setTimeout(() => {
+                if (grid.contains(clickedButton)) {
+                    clickedButton.classList.remove('highlight');
+                    clickedButton.style.transition = originalTransition;
+                }
+            }, 200);
+
+            if (index === sequence[playerSequence.length]) {
+                playerSequence.push(index);
+                playSequenceSound(index);
+
+                if (playerSequence.length === sequence.length) {
+                    grid.style.pointerEvents = 'none';
+                    currentRound++;
+
+                    if (currentRound === roundsPerLevel) { // Sub-level completed
+                        readyForNext = true;
+                        actionButton.disabled = false;
+
+                        if (level === 4 && sublevel === 10) {
+                             messageElement.textContent = `Congratulations! You Beat the Game!`;
+                             actionButton.disabled = true;
+                             actionButton.style.display = 'none';
+                             replayButton.style.display = 'inline-block';
+                             shareButton.disabled = false;
+                             isGameActive = false;
+                             return;
+                        }
+
+                        let displayNextLevel = level;
+                        let displayNextSublevel = sublevel + 1;
+                        if (displayNextSublevel > 10) {
+                            displayNextSublevel = 1;
+                            displayNextLevel++;
+                        }
+
+                        if (displayNextSublevel === 1) {
+                             messageElement.textContent = `LEVEL ${displayNextLevel}! Click Next.`;
+                        } else {
+                            messageElement.textContent = `Level ${level}.${sublevel} Complete! Click Next.`;
+                        }
+
+                    } else { // Rounds 1 or 2 completed
+                        messageElement.textContent = `Correct! Round ${currentRound + 1} of 3...`;
+                        readyForNext = false;
+                        actionButton.disabled = true;
+                        setTimeout(() => {
+                             if (isGameActive) startRound();
+                        }, 1500);
+                    }
+                }
+            } else {
+                playWrongSound();
+                endGame();
+                return;
+            }
+        }
+
+
+        function proceedToNextLevel() {
+             if (!isGameActive || !readyForNext) return;
+
+             readyForNext = false;
+             actionButton.disabled = true;
+
+             sublevel++;
+             if (sublevel > 10) {
+                 sublevel = 1;
+                 level++;
+             }
+
+             currentRound = 0;
+             levelElement.textContent = `Level: ${level}.${sublevel}`;
+             updateLevelSettings();
+
+             if (sublevel === 1) {
+                 messageElement.textContent = `LEVEL ${level}!`;
+                 setTimeout(() => {
+                     messageElement.textContent = "Watch the sequence...";
+                     startRound();
+                 }, 1500);
+             } else {
+                 messageElement.textContent = "Next sequence...";
+                 startRound();
+             }
+        }
+
+        function startRound() {
+            if (!isGameActive) return;
+            actionButton.disabled = true;
+            generateSequence();
+            playerSequence = [];
+            grid.style.pointerEvents = 'none';
+            setTimeout(showSequence, 500);
+        }
+
+        function startGame() {
+             if (isGameActive && messageElement.textContent !== "Click Start!") return;
+             if (audioContext.state === 'suspended') { audioContext.resume(); }
+
+            isGameActive = true;
+            readyForNext = false;
+            level = 1;
+            sublevel = 1;
+            currentRound = 0;
+            updateLevelSettings();
+            levelElement.textContent = `Level: ${level}.${sublevel}`;
+
+            actionButton.textContent = 'Next';
+            actionButton.style.display = 'inline-block';
+            actionButton.disabled = true;
+
+            replayButton.style.display = 'none';
+            shareButton.disabled = true;
+            messageElement.textContent = "Here we go...";
+            grid.style.pointerEvents = 'none';
+             grid.querySelectorAll('.highlight, .diversion-highlight').forEach(el => {
+                  el.classList.remove('highlight', 'diversion-highlight');
+             });
+
+            setTimeout(() => {
+                startRound();
+            }, 1500);
+        }
+
+        function endGame() {
+            isGameActive = false;
+            readyForNext = false;
+            messageElement.textContent = `Game Over! You reached Level ${level}.${sublevel}`;
+            grid.style.pointerEvents = 'none';
+            actionButton.style.display = 'none';
+            replayButton.style.display = 'inline-block';
+            shareButton.disabled = false;
+        }
+
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            document.body.classList.toggle('dark-theme', isDarkTheme);
+            themeToggle.innerHTML = isDarkTheme ? '<i class="material-icons">brightness_7</i>' : '<i class="material-icons">brightness_4</i>';
+             try { localStorage.setItem('seekleTheme', isDarkTheme ? 'dark' : 'light'); }
+             catch (e) { console.error("Could not save theme preference:", e); }
+        }
+
+        function loadThemePreference() {
+            try {
+                 const savedTheme = localStorage.getItem('seekleTheme');
+                 if (savedTheme === 'dark') { isDarkTheme = false; toggleTheme(); }
+            } catch (e) { console.error("Could not load theme preference:", e); }
+        }
+
+        async function shareGame() {
+            if (navigator.share) {
+                try {
+                    const shareText = isGameActive
+                                        ? `I'm playing Seekle and reached Level ${level}.${sublevel}!`
+                                        : `I played Seekle and reached Level ${level}.${sublevel}! Can you beat my level?`;
+                    await navigator.share({ title: 'Seekle Game Level!', text: shareText, url: window.location.href });
+                } catch (error) { console.error('Error sharing:', error); }
+            } else { alert('Sharing is not supported in your browser. Try copying the link!'); }
+        }
+
+        function toggleInstructions() {
+            const isVisible = instructionsContent.classList.contains('visible');
+            instructionsContent.classList.toggle('visible');
+            instructionsToggle.textContent = isVisible ? 'Show Instructions' : 'Hide Instructions';
+        }
+
+        function handleActionButtonClick() {
+             if (audioContext.state === 'suspended') { audioContext.resume(); }
+
+             if (!isGameActive) {
+                 startGame();
+             } else if (readyForNext) {
+                 proceedToNextLevel();
+             }
+        }
+
+        // --- Event Listeners ---
+        actionButton.addEventListener('click', handleActionButtonClick);
+        replayButton.addEventListener('click', startGame);
+        muteButton.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteButton.innerHTML = isMuted ? '<i class="material-icons">volume_off</i>' : '<i class="material-icons">volume_up</i>';
+        });
+        themeToggle.addEventListener('click', toggleTheme);
+        shareButton.addEventListener('click', shareGame);
+        instructionsToggle.addEventListener('click', toggleInstructions);
+
+        // --- Initialize the game ---
+        createGrid();
+        loadThemePreference();
+
+    </script>
+</body>
+</html>
