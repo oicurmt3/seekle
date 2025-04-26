@@ -140,6 +140,7 @@
 
         /* Score and level display */
         #score-level {
+            display:none;
             font-size: 18px;
             margin: 10px 0;
             display: flex;
@@ -147,6 +148,12 @@
             max-width: 300px;
             margin-left: auto;
             margin-right: auto;
+        }
+        #level {
+            display:none;
+            font-size:1px;
+            margin:0px
+            padding:0px;
         }
         /* HIDE SCORE SPAN */
         #score {
@@ -219,10 +226,10 @@
 <body>
     <div id="game-container">
         <h1>Seekle 🤔</h1>
-        <!-- <div id="score-level">
+        <div id="score-level">
             <span id="score">Score: 0</span>
             <span id="level">Level: 1.1</span>
-        </div> -->
+        </div>
         <div id="message">Click Start!</div>
         <div id="grid"></div>
         <div id="controls">
